@@ -48,8 +48,7 @@ class KNN(object):
 		#   Compute the distance between the ith test point and the jth       
         #   training point using norm(), and store the result in dists[i, j].     
     	# ================================================================ #
-
-        pass
+        dists[i][j] = norm(X[i] - self.X_train[j])
 
 		# ================================================================ #
 		# END YOUR CODE HERE
@@ -86,8 +85,11 @@ class KNN(object):
 	#   array.
 	# ================================================================ #
 
-    pass
-
+    #(X - X_train)^2 = X^2 - 2X*X_train + X_train^2
+    dists = np.sqrt(np.reshape(np.sum(X ** 2, axis=1), (num_test, 1)) - 2 * np.dot(X, self.X_train.T) + np.sum(self.X_train ** 2, axis=1))
+    # def l2norm(a):
+    #   return np.linalg.norm(self.X_train - a, axis=1, ord=2).T
+    # dists = np.apply_along_axis(l2norm, 1, X)
 	# ================================================================ #
 	# END YOUR CODE HERE
 	# ================================================================ #
@@ -125,7 +127,9 @@ class KNN(object):
 	  #   as y_pred[i].  Break ties by choosing the smaller label.
   	  # ================================================================ #
   
-      pass
+      k_closest_indices = np.argsort(dists[i])[:k]
+      closest_y = self.y_train[k_closest_indices]
+      y_pred[i] = np.bincount(closest_y).argmax()
 
   	  # ================================================================ #
   	  # END YOUR CODE HERE
