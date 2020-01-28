@@ -45,8 +45,10 @@ class SVM(object):
     #   set margins, and then normalize the loss by the number of 
 	  #	  training examples.)
     # ================================================================ #
-      pass
-    
+      for j in range(num_classes):
+        if j != y[i]:
+          loss += max(0,1 + np.dot(self.W[j], X[i]) - np.dot(self.W[y[i]], X[i]))
+    loss /= num_train
     # ================================================================ #
     # END YOUR CODE HERE
     # ================================================================ #
@@ -70,10 +72,16 @@ class SVM(object):
     for i in np.arange(num_train):
     # ================================================================ #
     # YOUR CODE HERE:
-	#   Calculate the SVM loss and the gradient.  Store the gradient in
+	  #   Calculate the SVM loss and the gradient.  Store the gradient in
     #   the variable grad.
     # ================================================================ #
-      pass
+      for j in range(num_classes):
+        if j != y[i]:
+          hinge = max(0,1 + np.dot(self.W[j], X[i]) - np.dot(self.W[y[i]], X[i]))
+          loss += hinge
+          if hinge > 0:
+            grad[y[i]] -= X[i]
+            grad[j] += X[i]
 
     # ================================================================ #
     # END YOUR CODE HERE
@@ -115,8 +123,14 @@ class SVM(object):
   
     # ================================================================ #
     # YOUR CODE HERE:
-	#   Calculate the SVM loss WITHOUT any for loops.
+	  #   Calculate the SVM loss WITHOUT any for loops.
     # ================================================================ #
+
+    wTx = np.dot(X, self.W.T)
+    yi_act = wTx[np.arange(len(y)), y]
+    margins = np.maximum(0, 1 + wTx - np.matrix(yi_act).T)
+    margins[np.arange(len(y)), y] = 0
+    loss = np.mean(np.sum(margins, axis=1))
 
     # ================================================================ #
     # END YOUR CODE HERE
@@ -124,10 +138,16 @@ class SVM(object):
 
 
 
-	# ================================================================ #
+	  # ================================================================ #
     # YOUR CODE HERE:
-	#   Calculate the SVM grad WITHOUT any for loops.
+	  #   Calculate the SVM grad WITHOUT any for loops.
     # ================================================================ #
+
+    s = margins
+    s[margins > 0] = 1
+    row_sum = np.sum(s, axis=1)
+    s[np.arange(len(y)), y] = -row_sum.T
+    grad = s.T.dot(X) / X.shape[0]
     
     # ================================================================ #
     # END YOUR CODE HERE
@@ -175,6 +195,9 @@ class SVM(object):
 	    #   in the dataset.  Use np.random.choice.  It's okay to sample with
 	    #   replacement.
       # ================================================================ #
+      index = np.random.choice(np.arange(num_train), batch_size)
+      X_batch = X[index]
+      y_batch = y[index]
       
       # ================================================================ #
       # END YOUR CODE HERE
@@ -188,6 +211,8 @@ class SVM(object):
       # YOUR CODE HERE:
       #   Update the parameters, self.W, with a gradient step 
       # ================================================================ #
+
+      self.W -= learning_rate * grad
 
 	    # ================================================================ #
       # END YOUR CODE HERE
@@ -216,6 +241,7 @@ class SVM(object):
     #   Predict the labels given the training data with the parameter self.W.
     # ================================================================ #
     
+    y_pred = np.argmax(np.dot(X, self.W.T), axis=1)
     # ================================================================ #
     # END YOUR CODE HERE
     # ================================================================ #
